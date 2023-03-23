@@ -1,0 +1,15 @@
+{
+  "name": "fipe-api",
+  "version": "1.0.0",
+  "description": "API para consulta veículos por tipo, marca e modelo",
+  "main": "index.js",
+  "author": "Olavo Mello",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "mongodb": "^5.1.0"
+  },
+  "scripts": {
+    "start": "node --max-old-space-size=4096 index.js"
+  }
+}
