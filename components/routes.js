@@ -12,6 +12,8 @@ const VERSION = "v1";
 router.get("/" + VERSION + "/types", FIPE.types);
 router.get("/" + VERSION + "/brands/:type", FIPE.brands);
 router.get("/" + VERSION + "/models/:type/:brand", FIPE.models);
+router.get("/" + VERSION + "/years/:type/:brand/:model", FIPE.years);
+router.get("/" + VERSION + "/details/:type/:brand/:model/:year", FIPE.details);
 
 // Other Routes
 router.get("/" + VERSION, (req, res) => {

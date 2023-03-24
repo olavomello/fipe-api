@@ -108,6 +108,123 @@ async function getModels(vehicleType, brandCode) {
     return ret;
   }
 }
+// Get years
+async function getYears(vehicleType, brandCode, modelCode) {
+  try {
+    
+    // Check paramenters
+    if (!vehicleType) {
+      const ret = { success: false, error: "Vehicle type is required!" };
+      if (DEBUG) console.log(ret);
+      return ret;
+    }
+    if (!brandCode) {
+      const ret = { success: false, error: "Brand code is required!" };
+      if (DEBUG) console.log(ret);
+      return ret;
+    }
+    if (!modelCode) {
+      const ret = { success: false, error: "Model code is required!" };
+      if (DEBUG) console.log(ret);
+      return ret;
+    }
+
+    // Payload
+    const payload = {
+      codigoTabelaReferencia: dataTable,
+      codigoTipoVeiculo: vehicleType,
+      codigoMarca: brandCode,
+      codigoModelo: modelCode,
+    };
+
+    // Post request using axios with error handling
+    const resp = await axios.post(URL_BASE + "ConsultarAnoModelo", payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = resp.data;
+
+    const ret = {
+      success: true,
+      updatedAt: dataTableUpdate,
+      type: vehicleType,
+      type_label: getTypes(vehicleType),
+      brand: brandCode,
+      model: modelCode,
+      data: data || [],
+    };
+    if (DEBUG) console.log(ret);
+    return ret;
+  } catch (error) {
+    const ret = { success: false, error };
+    if (DEBUG) console.log(ret);
+    return ret;
+  }
+}
+// Get details
+async function getDetails(vehicleType, brandCode, modelCode, yearCode, typeGas = 1, typeSearch = "tradicional") {
+  try {
+
+    // Check paramenters
+    if (!vehicleType) {
+      const ret = { success: false, error: "Vehicle type is required!" };
+      if (DEBUG) console.log(ret);
+      return ret;
+    }
+    if (!brandCode) {
+      const ret = { success: false, error: "Brand code is required!" };
+      if (DEBUG) console.log(ret);
+      return ret;
+    }
+    if (!modelCode) {
+      const ret = { success: false, error: "Model code is required!" };
+      if (DEBUG) console.log(ret);
+      return ret;
+    }
+    if (!yearCode) {
+      const ret = { success: false, error: "Year code is required!" };
+      if (DEBUG) console.log(ret);
+      return ret;
+    }
+
+    // Payload
+    const payload = {
+      codigoTabelaReferencia: dataTable,
+      codigoTipoVeiculo: vehicleType,
+      codigoMarca: brandCode,
+      codigoModelo: modelCode,
+      anoModelo: yearCode,
+      codigoTipoCombustivel: typeGas || 1,
+      tipoConsulta : typeSearch || "tradicional",    
+    };
+
+    // Post request using axios with error handling
+    const resp = await axios.post(URL_BASE + "ConsultarValorComTodosParametros", payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = resp.data;
+    const ret = {
+      success: true,
+      updatedAt: dataTableUpdate,
+      type: vehicleType,
+      type_label: getTypes(vehicleType),
+      brand: brandCode,
+      model: modelCode,
+      year: yearCode,
+      data,
+    };
+    if (DEBUG) console.log(ret);
+    return ret;
+  } catch (error) {
+    const ret = { success: false, error };
+    if (DEBUG) console.log(ret);
+    return ret;
+  }
+}
+
 
 // ----------------------------------------------------------------------------------------
 // API CALLS
@@ -135,14 +252,40 @@ async function models(req, res) {
   // Return
   await getModels(vehicleType, brandCode).then((ret) => res.json(ret));
 }
+// API years
+async function years(req, res) {
+  // Paramenter
+  const vehicleType = req.params.type || 0;
+  const brandCode = req.params.brand || 0;
+  const modelCode = req.params.model || 0;
+  // Return
+  await getYears(vehicleType, brandCode, modelCode).then((ret) => res.json(ret));
+}
+// API details
+async function details(req, res) {
+  // Paramenter
+  const vehicleType = req.params.type || 0;
+  const brandCode = req.params.brand || 0;
+  const modelCode = req.params.model || 0;
+  const yearCode = req.params.year || 0;
+  const typeGas = req.query.typeGas || 1;
+  const typeSearch = req.query.typeSearch || "";
+  // Return
+  await getDetails(vehicleType, brandCode, modelCode, yearCode, typeGas, typeSearch).then((ret) => res.json(ret));
+}
 
 // Exports
 module.exports = {
   types,
   brands,
   models,
+  years,
+  details,
+  
   /* Functions */
   getTypes,
   getBrands,
   getModels,
+  getYears,
+  getDetails,
 };

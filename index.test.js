@@ -29,3 +29,23 @@ test("should return vehicle models", async () => {
     })
   );
 });
+
+// Test get years
+test("should return vehicle years", async () => {
+  expect(await FIPE.getYears(1, 1, 1)).toEqual(
+    expect.objectContaining({
+      success: expect.any(Boolean),
+      data: expect.any(Array),
+    })
+  );
+});
+
+// Test get details
+test("should return vehicle details", async () => {
+  expect(await FIPE.getDetails(1, 1, 1, 1992)).toEqual(
+    expect.objectContaining({
+      success: expect.any(Boolean),
+      data: expect.any(Object),
+    })
+  );
+});

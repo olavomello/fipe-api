@@ -12,7 +12,7 @@
     "mongodb": "^5.1.0"
   },
   "scripts": {
-    "deb": "nodemon node --max-old-space-size=4096 index.js",
+    "dev": "nodemon node --max-old-space-size=4096 index.js",
     "start": "node --max-old-space-size=4096 index.js",
     "test": "jest"
   },
