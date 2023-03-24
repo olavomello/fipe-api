@@ -1,3 +1,5 @@
+// USE THIS FILE TO CONNECT TO YOUR DATABASE AND SAVE DATA ( MONGODB )
+
 require("dotenv").config();
 const { MongoClient } = require("mongodb");
 
@@ -24,6 +26,7 @@ async function add(collectionName, data) {
     const db = dbClient.db(dbName);
     // select the collection
     const collection = db.collection(collectionName);
+
     try {
       // Insert data
       await collection.insertMany(JSON.parse(JSON.stringify(data)), {
