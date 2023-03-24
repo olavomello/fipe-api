@@ -141,4 +141,8 @@ module.exports = {
   types,
   brands,
   models,
+  /* Functions */
+  getTypes,
+  getBrands,
+  getModels,
 };

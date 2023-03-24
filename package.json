@@ -13,9 +13,11 @@
   },
   "scripts": {
     "deb": "nodemon node --max-old-space-size=4096 index.js",
-    "start": "node --max-old-space-size=4096 index.js"
+    "start": "node --max-old-space-size=4096 index.js",
+    "test": "jest"
   },
   "devDependencies": {
+    "jest": "^29.5.0",
     "nodemon": "^2.0.22"
   }
 }
