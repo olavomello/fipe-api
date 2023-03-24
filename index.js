@@ -1,39 +1,39 @@
-const DB = require('./components/db');
-const FIPE = require('./components/fipe');
+const DB = require("./components/db");
+const FIPE = require("./components/fipe");
 
-
-async function init(){
-
+async function init() {
   // Read types
   const vtypes = FIPE.getTypes();
   let types = [];
 
-  if( vtypes?.success ){
+  if (vtypes?.success) {
     // Types
     types = vtypes?.data || [];
-    // Add types to DB
+    
+    // Drop types
+    await DB.drop('types');
+    // Add types
     await DB.add('types', types);
 
-    // Loop types
+    // Drop brands
+    await DB.drop('brands');
+
+    // Brands
     for (let i = 0; i < types.length; i++) {
-      
       // Read brands from type
       const vtype = types[i].Value || 0;
-      
       const vbrands = await FIPE.getBrands(vtype);
-      console.log(new Date(), "vtype", vtype, "vbrands", vbrands);
-
-      if( vbrands?.success ){
-        // Add brands to DB
-        await DB.add('brands', { type : vtype, ...(vbrands?.data || []) });
+      
+      if (vbrands?.success ) {
+        // Brands
+        await DB.add("brands", vbrands);
       } else {
-        console.warn(new Date(), 'Error on read brands');
-      }        
+        console.warn(new Date(), "Error on read brands from type", vtype);
+      }
     }
-
   } else {
-    console.warn(new Date(), 'Error on read types');
-  }  
+    console.warn(new Date(), "Error on read types");
+  }
 }
 
 init();
