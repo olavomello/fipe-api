@@ -1,10 +1,12 @@
 const axios = require('axios');
+const DB = require('../components/db');
 
 // Configs
 const URL_BASE = "https://veiculos.fipe.org.br/api/veiculos/";
 const dataTable = 295; // Março/2023
 const dataTableUpdate = new Date("2023-03");
-const DEBUG = false;
+const cacheEnabled = Boolean( process.env.CACHE_ENABLED === "true" ) || false;
+const DEBUG = Boolean(process.env.DEBUG === "true" || false ) || false;
 
 // Get types
 function getTypes(vehicleType) {
@@ -26,6 +28,10 @@ function getTypes(vehicleType) {
 }
 // Get brands
 async function getBrands(vehicleType) {
+
+  // Define table name
+  const tableName = "brands";
+
   try {
 
     // Check paramenters
@@ -40,14 +46,43 @@ async function getBrands(vehicleType) {
       codigoTabelaReferencia: dataTable,
       codigoTipoVeiculo: vehicleType,
     };
+    
+    // Data and dataCached
+    let dataCached, data = {};
 
-    // Post request using axios with error handling
-    const resp = await axios.post(URL_BASE + "ConsultarMarcas", payload, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const data = resp.data;
+    if( cacheEnabled ){
+      // Cache enabled - Try to find data in database
+      if( DEBUG ) console.log("Cache enabled");
+      dataCached = await DB.find(tableName, payload );
+    } else {
+      // Cache disabled
+      if( DEBUG ) console.log("Cache disabled");
+    }
+
+    if( dataCached?.length > 0 && cacheEnabled ){
+      // Return data from local database
+      data = dataCached; 
+    } else {
+      // Return data from FIPE API
+      // Post request using axios with error handling
+      const resp = await axios.post(URL_BASE + "ConsultarMarcas", payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      data = resp.data;      
+
+      // If cache enabled, save data in database
+      if( data.length > 0 ){
+        // Save data in database
+        // Add payload properties to array data
+        data.forEach(function(element) {
+          Object.assign(element, { ...payload, updatedAt: new Date() });
+        });
+        if( cacheEnabled ) await DB.add(tableName, data);
+      }
+    }
+    // Return data
     const ret = {
       success: true,
       updatedAt: dataTableUpdate,
@@ -55,15 +90,18 @@ async function getBrands(vehicleType) {
       type_label: getTypes(vehicleType),
       data,
     };
-    return ret;
+    return ret;    
   } catch (error) {
     const ret = { success: false, error };
-    if (DEBUG) console.log(ret);
     return ret;
   }
 }
 // Get models
 async function getModels(vehicleType, brandCode) {
+
+  // Define table name
+  const tableName = "models";
+
   try {
 
     // Check paramenters
@@ -85,13 +123,45 @@ async function getModels(vehicleType, brandCode) {
       codigoMarca: brandCode,
     };
 
-    // Post request using axios with error handling
-    const resp = await axios.post(URL_BASE + "ConsultarModelos", payload, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const data = resp.data;
+    // Data and dataCached
+    let dataCached, data = {};
+
+    if( cacheEnabled ){
+      // Cache enabled - Try to find data in database
+      if( DEBUG ) console.log("Cache enabled");
+      dataCached = await DB.find(tableName, payload );
+    } else {
+      // Cache disabled
+      if( DEBUG ) console.log("Cache disabled");
+    }
+
+    if( dataCached?.length > 0 && cacheEnabled ){
+      // Return data from local database
+      if( DEBUG ) console.log("Data returned from local database.");
+      data.Modelos = dataCached; 
+    } else {
+      // Return data from FIPE API
+      // Post request using axios with error handling
+      const resp = await axios.post(URL_BASE + "ConsultarModelos", payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      data = resp.data;      
+
+      // If cache enabled, save data in database
+      if( data?.Modelos?.length > 0 ){
+        // Save data in database
+        // Add payload properties to array data
+        data?.Modelos.forEach(function(element) {
+          Object.assign(element, { ...payload, updatedAt: new Date() });
+        });
+        // Cache on DB
+        if( cacheEnabled ) await DB.add(tableName, data?.Modelos);
+      }
+    }    
+
+    // Return data
     const ret = {
       success: true,
       updatedAt: dataTableUpdate,
@@ -100,7 +170,6 @@ async function getModels(vehicleType, brandCode) {
       brand: brandCode,
       data: data?.Modelos || [],
     };
-    if (DEBUG) console.log(ret);
     return ret;
   } catch (error) {
     const ret = { success: false, error };
@@ -110,6 +179,10 @@ async function getModels(vehicleType, brandCode) {
 }
 // Get years
 async function getYears(vehicleType, brandCode, modelCode) {
+
+  // Define table name
+  const tableName = "years";
+
   try {
     
     // Check paramenters
@@ -137,14 +210,45 @@ async function getYears(vehicleType, brandCode, modelCode) {
       codigoModelo: modelCode,
     };
 
-    // Post request using axios with error handling
-    const resp = await axios.post(URL_BASE + "ConsultarAnoModelo", payload, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const data = resp.data;
+    // Data and dataCached
+    let dataCached, data = {};
 
+    if( cacheEnabled ){
+      // Cache enabled - Try to find data in database
+      if( DEBUG ) console.log("Cache enabled");
+      dataCached = await DB.find(tableName, payload );
+    } else {
+      // Cache disabled
+      if( DEBUG ) console.log("Cache disabled");
+    }
+
+    if( dataCached?.length > 0 && cacheEnabled ){
+      // Return data from local database
+      if( DEBUG ) console.log("Data returned from local database.");
+      data = dataCached; 
+    } else {
+      // Return data from FIPE API
+      // Post request using axios with error handling
+      const resp = await axios.post(URL_BASE + "ConsultarAnoModelo", payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      data = resp.data;   
+
+      // If cache enabled, save data in database
+      if( data?.length > 0 ){
+        // Save data in database
+        // Add payload properties to array data
+        data.forEach(function(element) {
+          Object.assign(element, { ...payload, updatedAt: new Date() });
+        });
+        // Cache on DB
+        if( cacheEnabled ) await DB.add(tableName, data);
+      }
+    }      
+
+    // Return data
     const ret = {
       success: true,
       updatedAt: dataTableUpdate,
@@ -152,9 +256,8 @@ async function getYears(vehicleType, brandCode, modelCode) {
       type_label: getTypes(vehicleType),
       brand: brandCode,
       model: modelCode,
-      data: data || [],
+      data,
     };
-    if (DEBUG) console.log(ret);
     return ret;
   } catch (error) {
     const ret = { success: false, error };
@@ -164,6 +267,10 @@ async function getYears(vehicleType, brandCode, modelCode) {
 }
 // Get details
 async function getDetails(vehicleType, brandCode, modelCode, yearCode, typeGas = 1, typeSearch = "tradicional") {
+
+  // Define table name
+  const tableName = "details";
+
   try {
 
     // Check paramenters
@@ -199,13 +306,43 @@ async function getDetails(vehicleType, brandCode, modelCode, yearCode, typeGas =
       tipoConsulta : typeSearch || "tradicional",    
     };
 
-    // Post request using axios with error handling
-    const resp = await axios.post(URL_BASE + "ConsultarValorComTodosParametros", payload, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const data = resp.data;
+    // Data and dataCached
+    let dataCached, data = {};
+
+    if( cacheEnabled ){
+      // Cache enabled - Try to find data in database
+      if( DEBUG ) console.log("Cache enabled");
+      dataCached = await DB.find(tableName, payload );
+    } else {
+      // Cache disabled
+      if( DEBUG ) console.log("Cache disabled");
+    }
+
+    if( dataCached?.length > 0 && cacheEnabled ){
+      // Return data from local database
+      if( DEBUG ) console.log("Data returned from local database.");
+      data = dataCached; 
+    } else {
+      // Return data from FIPE API
+      // Post request using axios with error handling
+      const resp = await axios.post(URL_BASE + "ConsultarValorComTodosParametros", payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      data = resp.data;  
+
+      // If cache enabled, save data in database
+      if( data ){
+        // Save data in database
+        // Add payload properties to array data
+        Object.assign(data, { ...payload, updatedAt: new Date() });
+        // Cache on DB
+        if( cacheEnabled ) await DB.add(tableName, [data]);
+      }
+    } 
+
+    // Return data
     const ret = {
       success: true,
       updatedAt: dataTableUpdate,
@@ -216,7 +353,6 @@ async function getDetails(vehicleType, brandCode, modelCode, yearCode, typeGas =
       year: yearCode,
       data,
     };
-    if (DEBUG) console.log(ret);
     return ret;
   } catch (error) {
     const ret = { success: false, error };
