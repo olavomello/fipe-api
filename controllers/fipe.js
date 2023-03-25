@@ -3,7 +3,7 @@ const DB = require('../components/db');
 
 // Configs
 const URL_BASE = "https://veiculos.fipe.org.br/api/veiculos/";
-const dataTable = 295; // Março/2023
+const dataTable = process.env.FIPE_TABLE || 295; // Março/2023;
 const dataTableUpdate = new Date("2023-03");
 const cacheEnabled = Boolean( process.env.CACHE_ENABLED === "true" ) || false;
 const DEBUG = Boolean(process.env.DEBUG === "true" || false ) || false;
